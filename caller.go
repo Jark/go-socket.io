@@ -1,6 +1,7 @@
 package socketio
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 )
@@ -50,7 +51,14 @@ func (c *caller) GetArgs() []interface{} {
 	return ret
 }
 
-func (c *caller) Call(so Socket, args []interface{}) []reflect.Value {
+func (c *caller) Call(so Socket, args []interface{}) ([]reflect.Value, error) {
+	var err error
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New("Error reflecting on method")
+		}
+	}()
+
 	var a []reflect.Value
 	diff := 0
 	if c.NeedSocket {
@@ -68,5 +76,10 @@ func (c *caller) Call(so Socket, args []interface{}) []reflect.Value {
 		a[i+diff] = v
 	}
 
-	return c.Func.Call(a)
+	retV := c.Func.Call(a)
+	if err != nil {
+		return nil, err
+	} else {
+		return retV, nil
+	}
 }

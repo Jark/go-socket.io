@@ -150,7 +150,10 @@ func (h *socketHandler) onPacket(decoder *decoder, packet *packet) ([]interface{
 			return nil, err
 		}
 	}
-	retV := c.Call(h.socket, args)
+	retV, err := c.Call(h.socket, args)
+	if err != nil {
+		return nil, err
+	}
 	if len(retV) == 0 {
 		return nil, nil
 	}
